@@ -84,7 +84,7 @@ server {
   }
 
   location / {
-    proxy_pass _$NAME;
+    proxy_pass http://_$NAME;
   }
 }
 EOF
