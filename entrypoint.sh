@@ -4,7 +4,7 @@
 DOMAINS=`env | grep ^VHOST_`
 
 cat <<EOF > nginx/conf/nginx.conf
-worker_process 1;
+worker_processes 1;
 
 events {
   worker_connections $WORKER_CONNECTIONS;
@@ -24,10 +24,7 @@ http {
     listen $HTTP_PORT default_server;
     listen [::]:$HTTP_PORT;
     server_name _;
-
-    location / {
-      root /dev/null;
-    }
+    return 404;
   }
 
   init_by_lua_block {
@@ -46,12 +43,12 @@ EOF
 for l in $DOMAINS; do
 	NAME=`echo $l | sed -e 's/^VHOST_\([^=]*\)=.*$/\1/'`
 	DOMAIN=`echo $NAME | tr _ . | tr '[:upper:]' '[:lower:]'`
-	UPSTREAMS=(`echo $l | sed -e 's/^VHOST_[^=]*=\(.*\)$/\1/' | tr , ' '`)
+	UPSTREAMS=`echo $l | sed -e 's/^VHOST_[^=]*=\(.*\)$/\1/' | tr , ' '`
 	FILE="nginx/conf/vhosts/$DOMAIN"
 	cat <<EOF > $FILE
 upstream _$NAME {
 EOF
-	for u in ${UPSTREAMS[@]}; do
+	for u in $UPSTREAMS; do
 	  cat <<EOF >> $FILE
   server $u;
 EOF
